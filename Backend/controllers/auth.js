@@ -1,6 +1,8 @@
 const crypto = require("crypto");
 const ErrorResponse = require("../utils/errorResponse");
 const User = require("../models/User");
+const Posts = require("../models/accessToPendingTaskModel.js");
+
 const sendEmail = require("../utils/sendEmail");
 const router = require("express").Router();
 
@@ -62,9 +64,21 @@ exports.register = async (req, res, next) => {
     });
 
     sendToken(user, 200, res);
+    temp(username, lastName);
   } catch (err) {
     next(err);
   }
+};
+
+const temp = (username, lastName) => {
+  const userArray = `${username}_${lastName}`;
+  Posts.create({})
+    .then(() => {
+      console.log("Task added successfully!");
+    })
+    .catch((error) => {
+      console.error("Error adding task: ", error);
+    });
 };
 
 // @desc    Forgot Password Initialization

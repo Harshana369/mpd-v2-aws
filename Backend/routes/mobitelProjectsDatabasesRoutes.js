@@ -55,443 +55,221 @@ router.get("/mobitelProjectsDatabasesSiteData", async (req, res, next) => {
 });
 //------------------------------------------------------------------------------------------
 
-//----------------Getting Installation Pending Task data--------------------
-router.get("/getInstalling", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
-    if (err) {
-      return res.status(400).json({
-        error: err,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      Installing: getInstalling(posts),
-    });
-  });
-});
+//--------------------------------------------
 
-function getInstalling(posts) {
-  return posts.filter((post) => post.Installation_Completed === null);
-}
+router.get("/mobitelProjectsDatabases", async (req, res, next) => {
+  const { Project, Engineer } = req.query;
 
-//-----------------------Update Installing Pending Task-----------------------------
+  let reqQuery = {};
 
-router.route("/updateInstalling").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
-
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        Installation_Completed: formattedDate,
-      },
-    }
-  );
-
-  if (artist) {
-    res.send("Successful");
+  if (Project === "All Projects" && Engineer === "All siteEngineers") {
+    // return all data related to all Site_Engineers, without filtering by project
+    reqQuery = {};
+  } else if (Project === "All Projects") {
+    // return data related to the specified Site_Engineer for all projects
+    reqQuery = { Site_Engineer: Engineer };
+  } else if (Engineer === "All siteEngineers") {
+    // return data related to the specified Site_Engineer for all projects
+    reqQuery = { Project: Project };
   } else {
-    res.status(500).send("Not successful");
+    // return data related to the specified project and Site_Engineer
+    reqQuery = { Project, Site_Engineer: Engineer };
   }
-});
 
-//------------------------------------------------------------------------------------------
+  let queryStr = JSON.stringify(reqQuery);
 
-//----------------Getting Commissioning data--------------------
-router.get("/getCommissioning", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
+  Posts.find(JSON.parse(queryStr)).exec((err, posts) => {
     if (err) {
       return res.status(400).json({
         error: err,
       });
     }
+
     return res.status(200).json({
       success: true,
-      commissioning: getCommissiioning(posts),
+      projectsScopeDataCount: getProjectsScopeDataCount(posts, Project),
+      projectsHandOverDataCount: getProjectsHandOverDataCount(posts, Project),
+      projectsPatDataCount: getProjectsPatDataCount(posts, Project),
+      projectsOnAirDataCount: getProjectsOnAirDataCount(posts, Project),
+      //   HoldSitesDataforSquares: getHoldSitesData(posts),
+      projectScopeData: getProjectScopeData(posts, Project),
+      projectHandOverData: getProjectsHandOverData(posts, Project),
+      projectsPatData: getProjectsPatData(posts, Project),
+      projectsOnAirData: getProjectsOnAirData(posts, Project),
     });
   });
 });
 
-function getCommissiioning(posts) {
-  return posts.filter((post) => post.Commission === null);
-}
+//---------------------------------------------------------------------------------------------------------------------------
+//--------------------- Function for Getting Get Scope Data to the Front End Squares of Mobitel Projects ---------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
-//-----------------------Update Commissioning Pending Task-----------------------------
-router.route("/updateCommissioning").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
+function getProjectsScopeDataCount(posts, projectName) {
+  var ScopeDataCount = [];
 
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        Commission: formattedDate,
-      },
-    }
-  );
-
-  if (artist) {
-    res.send("Successful");
+  if (projectName === "All Projects") {
+    ScopeDataCount.push(posts.filter((obj) => obj.Scope !== null).length);
+    return ScopeDataCount;
   } else {
-    res.status(500).send("Not successful");
+    ScopeDataCount.push(
+      posts
+        .filter((obj) => obj.Project === projectName)
+        .filter((obj) => obj.Scope !== null).length
+    );
   }
-});
 
-//------------------------------------------------------------------------------------------
-
-//----------------Getting Pat data--------------------
-router.get("/getPat", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
-    if (err) {
-      return res.status(400).json({
-        error: err,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      Pat: getPat(posts),
-    });
-  });
-});
-
-function getPat(posts) {
-  return posts.filter((post) => post.PAT_Pass === null);
+  return ScopeDataCount;
 }
 
-//-----------------------Update Pat Pending Task-----------------------------
-router.route("/updatePat").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
+function getProjectScopeData(posts, projectName) {
+  var scopeData = [];
 
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        PAT_Pass: formattedDate,
-      },
-    }
-  );
+  if (projectName === "All Projects") {
+    scopeData.push(...posts.filter((obj) => obj.Scope !== null));
 
-  if (artist) {
-    res.send("Successful");
+    return scopeData;
   } else {
-    res.status(500).send("Not successful");
+    scopeData.push(
+      ...posts
+        .filter((obj) => obj.Project === projectName)
+        .filter((obj) => obj.Scope !== null)
+    );
   }
-});
 
-//------------------------------------------------------------------------------------------
-
-//---------------Getting Sar data--------------------
-router.get("/getSar", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
-    if (err) {
-      return res.status(400).json({
-        error: err,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      Sar: getSar(posts),
-    });
-  });
-});
-
-function getSar(posts) {
-  return posts.filter((post) => post.SAR_Pass === null);
+  //   console.log(scopeData);
+  return scopeData;
 }
 
-//-----------------------Update Sar Pending Task-----------------------------
-router.route("/updateSar").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
+//---------------------------------------------------------------------------------------------------------------------------
+//--------------------- Function for Getting Handover Data to the Front End Squares of Mobitel Projects ---------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        SAR_Pass: formattedDate,
-      },
-    }
-  );
+function getProjectsHandOverDataCount(posts, projectName) {
+  var handOverDataCount = [];
 
-  if (artist) {
-    res.send("Successful");
+  if (projectName === "All Projects") {
+    handOverDataCount.push(posts.filter((obj) => obj.Handover !== null).length);
+
+    return handOverDataCount;
   } else {
-    res.status(500).send("Not successful");
+    handOverDataCount.push(
+      posts
+        .filter((obj) => obj.Project === projectName)
+        .filter((obj) => obj.Handover !== null).length
+    );
   }
-});
 
-//------------------------------------------------------------------------------------------
-
-//-------------Getting OnAir data-----------------------
-
-router.get("/getOnAir", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
-    if (err) {
-      return res.status(400).json({
-        error: err,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      OnAir: getOnAir(posts),
-    });
-  });
-});
-
-function getOnAir(posts) {
-  return posts.filter((post) => post.On_air === null);
+  //   console.log(handOverDataCount);
+  return handOverDataCount;
 }
 
-//-----------------------Update OnAir Pending Task-----------------------------
-router.route("/updateOnAir").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
+function getProjectsHandOverData(posts, projectName) {
+  var handOverData = [];
 
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        On_air: formattedDate,
-      },
-    }
-  );
+  if (projectName === "All Projects") {
+    handOverData.push(...posts.filter((obj) => obj.Handover !== null));
 
-  if (artist) {
-    res.send("Successful");
+    return handOverData;
   } else {
-    res.status(500).send("Not successful");
+    handOverData.push(
+      ...posts
+        .filter((obj) => obj.Project === projectName)
+        .filter((obj) => obj.Handover !== null)
+    );
   }
-});
 
-//------------------------------------------------------------------------------------------
-
-//-------------Getting Material Return data-----------------------
-
-router.get("/getMaterialReturn", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
-    if (err) {
-      return res.status(400).json({
-        error: err,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      MaterialReturn: getMaterialReturn(posts),
-    });
-  });
-});
-
-function getMaterialReturn(posts) {
-  return posts.filter((post) => post.Material_Return === null);
+  //   console.log(handOverData);
+  return handOverData;
 }
 
-//-----------------------Update MaterialReturn Pending Task-----------------------------
-router.route("/updateMaterialReturn").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
+//---------------------------------------------------------------------------------------------------------------------------
+//--------------------- Function for Getting Pat Pass Data to the Front End Squares of Mobitel Projects ---------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        Material_Return: formattedDate,
-      },
-    }
-  );
+function getProjectsPatDataCount(posts, projectName) {
+  var patPassDataCount = [];
 
-  if (artist) {
-    res.send("Successful");
+  if (projectName === "All Projects") {
+    patPassDataCount.push(posts.filter((obj) => obj.PAT_Pass !== null).length);
+
+    return patPassDataCount;
   } else {
-    res.status(500).send("Not successful");
+    patPassDataCount.push(
+      posts
+        .filter((obj) => obj.Project === projectName)
+        .filter((obj) => obj.PAT_Pass !== null).length
+    );
   }
-});
-
-//------------------------------------------------------------------------------------------
-
-//-------------Getting Pr data-----------------------
-
-router.get("/getPr", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
-    if (err) {
-      return res.status(400).json({
-        error: err,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      Pr: getPr(posts),
-    });
-  });
-});
-
-function getPr(posts) {
-  return posts.filter((post) => post.PR_Raise === null);
+  //   console.log(patPassDataCount);
+  return patPassDataCount;
 }
-//-----------------------Update Pr Pending Task-----------------------------
-router.route("/updatePr").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
 
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        PR_Raise: formattedDate,
-      },
-    }
-  );
+function getProjectsPatData(posts, projectName) {
+  var patPassData = [];
 
-  if (artist) {
-    res.send("Successful");
+  if (projectName === "All Projects") {
+    patPassData.push(...posts.filter((obj) => obj.PAT_Pass !== null));
+
+    return patPassData;
   } else {
-    res.status(500).send("Not successful");
+    patPassData.push(
+      ...posts
+        .filter((obj) => obj.Project === projectName)
+        .filter((obj) => obj.PAT_Pass !== null)
+    );
   }
-});
 
-//------------------------------------------------------------------------------------------
-
-//-------------Getting Po data-----------------------
-router.get("/getPo", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
-    if (err) {
-      return res.status(400).json({
-        error: err,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      Po: getPo(posts),
-    });
-  });
-});
-
-function getPo(posts) {
-  return posts.filter((post) => post.PO_issue === null);
+  //   console.log(patPassData);
+  return patPassData;
 }
 
-//-----------------------Update Po Pending Task-----------------------------
-router.route("/updatePo").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
+//---------------------------------------------------------------------------------------------------------------------------
+//--------------------- Function for Getting Get On Air Data to the Front End Squares of Mobitel Projects ---------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        PO_issue: formattedDate,
-      },
-    }
-  );
+function getProjectsOnAirDataCount(posts, projectName) {
+  var OnAirDataCount = [];
 
-  if (artist) {
-    res.send("Successful");
+  if (projectName === "All Projects") {
+    OnAirDataCount.push(posts.filter((obj) => obj.On_air !== null).length);
+
+    return OnAirDataCount;
   } else {
-    res.status(500).send("Not successful");
+    OnAirDataCount.push(
+      posts
+        .filter((obj) => obj.Project === projectName)
+        .filter((obj) => obj.On_air !== null).length
+    );
   }
-});
-
-//------------------------------------------------------------------------------------------
-
-//-------------Getting Invoice data-----------------------
-router.get("/geInvoice", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
-    if (err) {
-      return res.status(400).json({
-        error: err,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      Invoice: getInvoice(posts),
-    });
-  });
-});
-
-function getInvoice(posts) {
-  return posts.filter((post) => post.Submit_Invoice === null);
+  //   console.log(OnAirDataCount);
+  return OnAirDataCount;
 }
 
-router.route("/updateInvoice").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
+function getProjectsOnAirData(posts, projectName) {
+  var onAirData = [];
 
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        Submit_Invoice: formattedDate,
-      },
-    }
-  );
+  if (projectName === "All Projects") {
+    onAirData.push(...posts.filter((obj) => obj.On_air !== null));
 
-  if (artist) {
-    res.send("Successful");
+    return onAirData;
   } else {
-    res.status(500).send("Not successful");
+    onAirData.push(
+      ...posts
+        .filter((obj) => obj.Project === projectName)
+        .filter((obj) => obj.On_air !== null)
+    );
   }
-});
 
-//------------------------------------------------------------------------------------------
+  //   console.log(onAirData);
+  return onAirData;
+}
 
-//-------------Getting Po Closure data-----------------------
-router.get("/gePoClosure", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
+// ------------------------------------------------------------------------------------------------------------------
+// --------------------------  Get projects name array  -------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------
+
+router.get("/mobitelProjectsOverviewTable/ProjectsArray", (req, res) => {
+  Posts.find().exec((err, mobitelProjects) => {
     if (err) {
       return res.status(400).json({
         error: err,
@@ -499,142 +277,475 @@ router.get("/gePoClosure", async (req, res, next) => {
     }
     return res.status(200).json({
       success: true,
-      PoClosure: getPoClosure(posts),
+      mobitelProjectsNamesArray: getProjectsNamesArray(mobitelProjects),
     });
   });
 });
 
-function getPoClosure(posts) {
-  return posts.filter((post) => post.PO_closure === null);
+function getProjectsNamesArray(mobitelProjects) {
+  var projectsNamesArray = [];
+
+  const uniqueProjects = mobitelProjects
+    .map((project) => project.Project)
+    .filter((project, index, projects) => projects.indexOf(project) === index);
+
+  for (let i = 0; i < uniqueProjects.length; i++) {
+    projectsNamesArray.push({
+      value: uniqueProjects[i],
+      label: uniqueProjects[i],
+    });
+  }
+  return projectsNamesArray;
 }
 
-router.route("/updatePoClosure").put(async (req, res) => {
-  const Tr = req.body.Task_Ref;
-  const today = new Date();
-  const options = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  };
-  const formattedDate = today.toLocaleDateString("en-US", options);
+//------------------------------------------------Mobitel Projects Database Excell Upload ---------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
-  const artist = await Posts.updateOne(
-    { Task_Ref: `${Tr}` },
-    {
-      $set: {
-        PO_closure: formattedDate,
-      },
+router.post("/mobitelProjectsDatabasesExcell/upload", (req, res) => {
+  const newPost = req.body;
+  async function run() {
+    try {
+      const options = { ordered: true };
+      const result = await Posts.insertMany(newPost, options);
+      return res.status(200).json({
+        success: `${newPost.length} Projects Added Successfully !`,
+      });
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(400).json({
+          error: "Planning ID must be a unique value !",
+        });
+      } else {
+        return res.status(400).json({
+          error: err,
+        });
+      }
     }
+  }
+  run();
+});
+
+//------------------------------------------------------Get Site Data to The ColumnChart---------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
+
+router.get(
+  "/mobitelProjectsDatabasesChartDataColumnChartData",
+  async (req, res, next) => {
+    const { Project, Engineer } = req.query;
+
+    let reqQuery = {};
+
+    if (Project === "All Projects" && Engineer === "All siteEngineers") {
+      // return all data related to all Site_Engineers, without filtering by project
+      reqQuery = {};
+    } else if (Project === "All Projects") {
+      // return data related to the specified Site_Engineer for all projects
+      reqQuery = { Site_Engineer: Engineer };
+    } else if (Engineer === "All siteEngineers") {
+      // return data related to the specified Site_Engineer for all projects
+      reqQuery = { Project: Project };
+    } else {
+      // return data related to the specified project and Site_Engineer
+      reqQuery = { Project, Site_Engineer: Engineer };
+    }
+
+    let queryStr = JSON.stringify(reqQuery);
+
+    Posts.find(JSON.parse(queryStr)).exec((err, posts) => {
+      if (err) {
+        return res.status(400).json({
+          error: err,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        columnChartData: getchartData(posts), // Graph data of number of sites Mobilized in each month sent to front end Appwebsitevisits.
+        XaxisDataForTheGraphs: getXaxisData(), // x axis data labels array sent to the Column graphs front end.
+        ProjectCompletionForFrontEnd: getProjectCompletionData(posts), // Data for Front end Mobitel Projects Insights project Completion Donut Graph.
+        weeklyProgressDataForFrontEnd: getWeeklyProgressData(posts), // Data for Front end Mobitel Projects Insights Weekly Progress Graph.
+        SevenDaysOfWeek: getSevenDaysOfWeek(), // 7 Days of Week going to front end weekly progress column graph.
+      });
+    });
+  }
+);
+
+//---------------------------------------------------------------------------------------------------------------------------
+//--------------------- Function for X Axis Labels to the Front End of Vendor Project Databases ---------------------------
+//---------------------------------------------------------------------------------------------------------------------------
+
+function getXaxisData() {
+  var theMonths = new Array(
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12"
   );
 
-  if (artist) {
-    res.send("Successful");
+  var monthsArray = [];
+  var d = new Date();
+  d.setDate(1);
+  for (i = 0; i <= 11; i++) {
+    monthsArray.push(theMonths[d.getMonth()] + "/01/" + d.getFullYear());
+    d.setMonth(d.getMonth() - 1);
+  }
+
+  monthsArray.reverse();
+
+  var XaxisMonths = monthsArray;
+
+  //   console.log(monthsArray);
+  return XaxisMonths;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------
+//--------------------- Functions for Getting Graph Data to the Front End of Mobitel Project Databases ----------------------
+//---------------------------------------------------------------------------------------------------------------------------
+
+function getchartData(posts) {
+  var installedData = [];
+  var commissioned = [];
+  var sarData = [];
+  var patData = [];
+  var onairData = [];
+
+  var theMonths = new Array(
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12"
+  );
+  var now = new Date();
+
+  for (var i = 0; i < 12; i++) {
+    var future = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    var month = theMonths[future.getMonth()];
+    var year = future.getFullYear();
+    var monthsArrayReversed = [];
+    var monthsCountFrom2015 = (year - 2014) * 12;
+
+    for (var i = 0; i < monthsCountFrom2015; i++) {
+      monthsArrayReversed.push(
+        now.getFullYear().toString() + "-" + theMonths[now.getMonth()]
+      );
+      now.setMonth(now.getMonth() - 1);
+    }
+    monthsArrayReversed.reverse();
+  }
+
+  let monthsArray = monthsArrayReversed;
+  // console.log(monthsArray);
+  // monthsArray = ['2021-02', '2021-03','2021-04', '2021-05','2021-06', '2021-07','2021-08', '2021-09','2021-10', '2021-11','2021-12', '2022-01']
+  // console.log(monthsCountFrom2015);
+  for (var i = 0; i < monthsCountFrom2015; i++) {
+    (installedData[i] = posts
+      .filter((obj) => obj.Installation_Completed !== null)
+      .filter(
+        (obj) => obj.Installation_Completed.slice(0, 7) === monthsArray[i]
+      ).length),
+      (commissioned[i] = posts
+        .filter((obj) => obj.Commission !== null)
+        .filter((obj) => obj.Commission.slice(0, 7) === monthsArray[i]).length),
+      (sarData[i] = posts
+        .filter((obj) => obj.SAR_Pass !== null)
+        .filter((obj) => obj.SAR_Pass.slice(0, 7) === monthsArray[i]).length),
+      (patData[i] = posts
+        .filter((obj) => obj.PAT_Pass !== null)
+        .filter((obj) => obj.PAT_Pass.slice(0, 7) === monthsArray[i]).length),
+      (onairData[i] = posts
+        .filter((obj) => obj.On_air !== null)
+        .filter((obj) => obj.On_air.slice(0, 7) === monthsArray[i]).length);
+  }
+  // ----------------------------------------------------------------------------------------------------------------------------------------------
+
+  let myarray2 = installedData,
+    cumilative2 = [];
+  let myarray3 = commissioned,
+    cumilative3 = [];
+  let myarray4 = sarData,
+    cumilative4 = [];
+  let myarray5 = patData,
+    cumilative5 = [];
+  let myarray6 = onairData,
+    cumilative6 = [];
+
+  for (let i = 0, s = myarray2[0]; i < myarray2.length; i++, s += myarray2[i])
+    cumilative2.push(s);
+  for (let i = 0, s = myarray3[0]; i < myarray3.length; i++, s += myarray3[i])
+    cumilative3.push(s);
+  for (let i = 0, s = myarray4[0]; i < myarray4.length; i++, s += myarray4[i])
+    cumilative4.push(s);
+  for (let i = 0, s = myarray5[0]; i < myarray5.length; i++, s += myarray5[i])
+    cumilative5.push(s);
+  for (let i = 0, s = myarray6[0]; i < myarray6.length; i++, s += myarray6[i])
+    cumilative6.push(s);
+
+  let chartData = [];
+  let LastYearCum6 = cumilative6.slice(
+    cumilative6.length - 13,
+    cumilative6.length - 1
+  ); // On air
+  let LastYearCum5 = cumilative5.slice(
+    cumilative5.length - 13,
+    cumilative5.length - 1
+  );
+  let LastYearCum4 = cumilative4.slice(
+    cumilative4.length - 13,
+    cumilative4.length - 1
+  );
+  let LastYearCum3 = cumilative3.slice(
+    cumilative3.length - 13,
+    cumilative3.length - 1
+  );
+  let LastYearCum2 = cumilative2.slice(
+    cumilative2.length - 13,
+    cumilative2.length - 1
+  );
+
+  chartData.push(
+    { name: "On Air", type: "column", data: LastYearCum6 },
+    { name: "PAT", type: "column", data: LastYearCum5 },
+    { name: "SAR", type: "column", data: LastYearCum4 },
+    { name: "Commisioned", type: "column", data: LastYearCum3 },
+    { name: "Installed", type: "column", data: LastYearCum2 }
+  );
+
+  //console.log(chartData);
+  return chartData;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------
+//--------Function for Getting Project Cpmpletion Data to the Front End Mobitel Projects Insights Project Completion Donut---
+//---------------------------------------------------------------------------------------------------------------------------
+
+function getProjectCompletionData(posts) {
+  (onAirSites = getOnAirData(posts)), (handOverSites = getHandOverData(posts));
+
+  const projectCompletionChartData = [];
+  const completed = onAirSites;
+  const pending = handOverSites - onAirSites;
+  const hold = 0;
+
+  projectCompletionChartData.push(completed, pending, hold);
+
+  //console.log(projectCompletionChartData);
+  return projectCompletionChartData;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------
+//--------------------- Function for Getting Get On Air Data to the Front End Squares of Mobitel Projects ---------------------
+//---------------------------------------------------------------------------------------------------------------------------
+
+function getOnAirData(posts) {
+  var OnAirData = [];
+
+  OnAirData = posts.filter((obj) => obj.On_air !== null).length;
+  //console.log(OnAirData);
+  return OnAirData;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------
+//--------------------- Function for Getting Handover Data to the Front End Squares of Mobitel Projects ---------------------
+//---------------------------------------------------------------------------------------------------------------------------
+
+function getHandOverData(posts) {
+  var handOverData = [];
+
+  handOverData.push(posts.filter((obj) => obj.Handover !== null).length);
+
+  //console.log(handOverData);
+  return handOverData;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------
+//---------- Functions for Getting Last Week Progress Graph Data to the Front End of Mobitel Project Databases Insights------
+//---------------------------------------------------------------------------------------------------------------------------
+
+function getWeeklyProgressData(posts) {
+  var onairData = [];
+  var onairTargetData = [];
+
+  var lastWeekDates = [];
+  var yesterdayDate = [];
+  var yesterdayMonth = [];
+  var yesterdayYear = [];
+
+  for (var i = 0; i < 7; i++) {
+    yesterdayDate[i] = new Date(
+      new Date().setDate(new Date().getDate() - i)
+    ).getDate();
+    yesterdayMonth[i] = (
+      "0" +
+      (new Date(new Date().setDate(new Date().getDate() - i)).getMonth() + 1)
+    ).slice(-2);
+    yesterdayYear[i] = new Date(
+      new Date().setDate(new Date().getDate() - i)
+    ).getFullYear();
+
+    lastWeekDates[i] =
+      yesterdayYear[i] + "-" + yesterdayMonth[i] + "-" + yesterdayDate[i];
+  }
+  lastWeekDates.reverse();
+
+  // console.log(lastWeekDates);
+  // lastWeekDates = ['2022-01-10','2022-01-11','2022-01-12','2022-01-13','2022-01-14','2022-01-15','2022-01-16']
+
+  for (var i = 0; i < 7; i++) {
+    onairData[i] = posts.filter(
+      (obj) => obj.On_air === lastWeekDates[i]
+    ).length;
+  }
+  // ----------------------------------------------------------------------------------------------------------------------------------------------
+  // console.log(onairData);
+
+  let onAirArray = onairData;
+
+  let weeklyProgressData = [];
+  weeklyProgressData.push({
+    name: "Completed",
+    type: "column",
+    data: onAirArray,
+  });
+
+  // console.log(weeklyProgressData);
+  return weeklyProgressData;
+}
+
+//---------------------------------------------------------------------------------------------------------------------------
+//-------------- Function for 7 days of week for Front End Weekly Progress Graph of Mobitel Project Databases ---------------
+//---------------------------------------------------------------------------------------------------------------------------
+
+function getSevenDaysOfWeek() {
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  let today = new Date();
+  let start = today.getDay();
+  if (start == 6) {
+    return days;
   } else {
-    res.status(500).send("Not successful");
+    return days.slice(start).concat(days.slice(0, start));
   }
+}
+
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+// ---------------------- Get sites data to the graphs  ---------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+router.get("/mobitelProjectsLastUpdates", async (req, res, next) => {
+  const { Project, Engineer } = req.query;
+
+  let reqQuery = {};
+
+  if (Project === "All Projects" && Engineer === "All siteEngineers") {
+    // return all data related to all Site_Engineers, without filtering by project
+    reqQuery = {};
+  } else if (Project === "All Projects") {
+    // return data related to the specified Site_Engineer for all projects
+    reqQuery = { Site_Engineer: Engineer };
+  } else if (Engineer === "All siteEngineers") {
+    // return data related to the specified Site_Engineer for all projects
+    reqQuery = { Project: Project };
+  } else {
+    // return data related to the specified project and Site_Engineer
+    reqQuery = { Project, Site_Engineer: Engineer };
+  }
+
+  let queryStr = JSON.stringify(reqQuery);
+
+  Posts.find(JSON.parse(queryStr), {}, { sort: { updatedAt: -1 } })
+    .limit(5)
+    .exec((err, posts) => {
+      if (err) {
+        return res.status(400).json({
+          error: err,
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        existingPosts: posts,
+      });
+    });
 });
 
-router.get("/mobitelProjectsDatabasesPendingTasks", async (req, res, next) => {
-  Posts.find().exec((err, posts) => {
-    if (err) {
-      return res.status(400).json({
-        error: err,
-      });
+router.put("/saveProjectOnlineData", async (req, res) => {
+  Posts.find().exec(async (err, posts) => {
+    const projectOnline = req.body.pOnline;
+    for (let i = 0; i < projectOnline.length; i++) {
+      const taskRef = projectOnline[i].Task_Ref;
+      const matchingObject = posts.find((obj) => obj.Task_Ref === taskRef);
+      if (matchingObject.Task_Ref === taskRef) {
+        // console.log("Editing new object");
+
+        // Update the matching object in the collection
+        matchingObject.Site_Id = projectOnline[i].siteId;
+        matchingObject.Site_Name = projectOnline[i].siteName;
+        matchingObject.Handover = projectOnline[i].handover;
+        matchingObject.Project = projectOnline[i].project;
+        matchingObject.Scope = projectOnline[i].scope;
+        matchingObject.Site_Engineer = projectOnline[i].siteEngineer;
+        matchingObject.Sub_Contractor = projectOnline[i].subContractor;
+        matchingObject.Task_Assigned = projectOnline[i].taskAssigned;
+        matchingObject.Task_Commenced = projectOnline[i].taskCommenced;
+        matchingObject.Installation_Completed =
+          projectOnline[i].installationCompleted;
+        matchingObject.Commission = projectOnline[i].commission;
+        matchingObject.PAT_Pass = projectOnline[i].PATPass;
+        matchingObject.SAR_Pass = projectOnline[i].SARPass;
+        matchingObject.On_air = projectOnline[i].onAir;
+        matchingObject.BOQ_Submit = projectOnline[i].BOQSubmit;
+        matchingObject.BOQ_Approve = projectOnline[i].BOQApprove;
+        matchingObject.PR_Raise = projectOnline[i].PRRaise;
+
+        // Save the updated object
+        await matchingObject.save();
+      } else {
+        // Create a new object in the collection
+
+        // console.log("Add new objects");
+        await Posts.create({
+          Task_Ref: taskRef,
+          Site_Id: projectOnline[i].siteId,
+          Site_Name: projectOnline[i].siteName,
+          Handover: projectOnline[i].handover,
+          Project: projectOnline[i].project,
+          Scope: projectOnline[i].scope,
+          Site_Engineer: projectOnline[i].siteEngineer,
+          Sub_Contractor: projectOnline[i].subContractor,
+          Task_Assigned: projectOnline[i].taskAssigned,
+          Task_Commenced: projectOnline[i].taskCommenced,
+          Installation_Completed: projectOnline[i].installationCompleted,
+          Commission: projectOnline[i].commission,
+          PAT_Pass: projectOnline[i].PATPass,
+          SAR_Pass: projectOnline[i].SARPass,
+          On_air: projectOnline[i].onAir,
+          BOQ_Submit: projectOnline[i].BOQSubmit,
+          BOQ_Approve: projectOnline[i].BOQApprove,
+          PR_Raise: projectOnline[i].PRRaise,
+        });
+      }
     }
+
     return res.status(200).json({
-      success: true,
-      InstallationPendingTasks: getInstallationPendingTasks(posts),
-      CommissioningPendingTasks: getCommissioningPendingTasks(posts),
-      PatPendingTasks: getPatPendingTasks(posts),
-      SarPendingTasks: getSarPendingTasks(posts),
-      OnAirPendingTasks: getOnAirPendingTasks(posts),
-      MaterialReturnPendingTasks: getMaterialReturnPendingTask(posts),
-      PrPendingTasks: getPrPendingTasks(posts),
-      PoPendingTasks: getPoPendingTasks(posts),
-      InvoicePendingTasks: getInvoicePendingTasks(posts),
-      PoClosurePendingTasks: getPoClosurePendingTasks(posts),
+      success: "successfully added",
     });
   });
 });
-
-function getInstallationPendingTasks(posts) {
-  let InstallationPendingTasks = [];
-
-  InstallationPendingTasks = posts.filter(
-    (post) => post.Installation_Completed === null
-  );
-
-  return InstallationPendingTasks.length;
-}
-
-function getCommissioningPendingTasks(posts) {
-  let CommissioningPendingTasks = [];
-
-  CommissioningPendingTasks = posts.filter((post) => post.Commission === null);
-
-  return CommissioningPendingTasks.length;
-}
-function getPatPendingTasks(posts) {
-  let PatPendingTasks = [];
-
-  PatPendingTasks = posts.filter((post) => post.PAT_Pass === null);
-
-  return PatPendingTasks.length;
-}
-
-function getSarPendingTasks(posts) {
-  let SarPendingTasks = [];
-
-  SarPendingTasks = posts.filter((post) => post.SAR_Pass === null);
-
-  return SarPendingTasks.length;
-}
-
-function getOnAirPendingTasks(posts) {
-  let OnAirPendingTasks = [];
-  OnAirPendingTasks = posts.filter((post) => post.On_air === null);
-  return OnAirPendingTasks.length;
-}
-
-function getMaterialReturnPendingTask(posts) {
-  let MaterialReturnPendingTasks = [];
-
-  MaterialReturnPendingTasks = posts.filter(
-    (post) => post.Material_Return === null
-  );
-  return MaterialReturnPendingTasks.length;
-}
-
-function getPrPendingTasks(posts) {
-  let PrPendingTasks = [];
-
-  PrPendingTasks = posts.filter((post) => post.PR_Raise === null);
-
-  return PrPendingTasks.length;
-}
-
-function getPoPendingTasks(posts) {
-  let PoPendingTasks = [];
-
-  PoPendingTasks = posts.filter((post) => post.PO_issue === null);
-
-  return PoPendingTasks.length;
-}
-
-function getInvoicePendingTasks(posts) {
-  let InvoicePendingTasks = [];
-
-  InvoicePendingTasks = posts.filter((post) => post.Submit_Invoice === null);
-
-  return InvoicePendingTasks.length;
-}
-
-function getPoClosurePendingTasks(posts) {
-  let PoClosurePendingTasks = [];
-
-  PoClosurePendingTasks = posts.filter((post) => post.PO_closure === null);
-
-  return PoClosurePendingTasks.length;
-}
 
 module.exports = router;

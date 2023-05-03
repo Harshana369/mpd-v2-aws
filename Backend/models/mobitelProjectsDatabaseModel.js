@@ -2,10 +2,7 @@ const mongoose = require("mongoose");
 
 const dataSchema = new mongoose.Schema(
   {
-    Task_Ref: {
-      type: String,
-      unique: true,
-    },
+    Task_Ref: { type: String, required: true, unique: true }, // add unique: true
     Site_Id: String,
     Site_Name: String,
     Handover: String,
@@ -21,6 +18,7 @@ const dataSchema = new mongoose.Schema(
 
     Task_Assigned: String,
     Task_Commenced: String,
+
     Installation_Completed: {
       type: String,
       default: null,
