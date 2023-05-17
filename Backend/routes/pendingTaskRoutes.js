@@ -396,39 +396,69 @@ router.route("/updatePoClosure").put(async (req, res) => {
 
 //------------------------------------------ Get All SiteEngineers For PendingTask------------------------------------------------
 
-router.get("/AllSiteEngineersNames", async (req, res, next) => {
-  Users.find().exec((err, users) => {
+router.get("/AllSiteEngineersNames", (req, res) => {
+  Posts.find().exec((err, mobitelProjects) => {
     if (err) {
       return res.status(400).json({
         error: err,
       });
     }
-
     return res.status(200).json({
-      AllSiteEngineersNames: getSiteEngineerNames(users),
+      success: true,
+      siteEngineersNamesArray: getSiteEngineerNames(mobitelProjects),
     });
   });
 });
 
-function getSiteEngineerNames(users) {
-  const siteEngineers = users.filter(
-    (users) => users.designation === "Site Engineer"
-  );
+function getSiteEngineerNames(mobitelProjects) {
+  var siteEngineersNamesArray = [];
 
-  const names = siteEngineers.map(
-    (engineer) => `${engineer.username} ${engineer.lastName}`
-  );
+  const uniqueProjects = mobitelProjects
+    .map((project) => project.Site_Engineer)
+    .filter((project, index, projects) => projects.indexOf(project) === index);
 
-  const siteEngineersNamesArray = [];
-
-  for (let i = 0; i < names.length; i++) {
+  for (let i = 0; i < uniqueProjects.length; i++) {
     siteEngineersNamesArray.push({
-      value: names[i],
-      label: names[i],
+      value: uniqueProjects[i],
+      label: uniqueProjects[i],
     });
   }
   return siteEngineersNamesArray;
 }
+
+// router.get("/AllSiteEngineersNames", async (req, res, next) => {
+//   Users.find().exec((err, users) => {
+//     if (err) {
+//       return res.status(400).json({
+//         error: err,
+//       });
+//     }
+
+//     return res.status(200).json({
+//       AllSiteEngineersNames: getSiteEngineerNames(users),
+//     });
+//   });
+// });
+
+// function getSiteEngineerNames(users) {
+//   const siteEngineers = users.filter(
+//     (users) => users.designation === "Site Engineer"
+//   );
+
+//   const names = siteEngineers.map(
+//     (engineer) => `${engineer.username} ${engineer.lastName}`
+//   );
+
+//   const siteEngineersNamesArray = [];
+
+//   for (let i = 0; i < names.length; i++) {
+//     siteEngineersNamesArray.push({
+//       value: names[i],
+//       label: names[i],
+//     });
+//   }
+//   return siteEngineersNamesArray;
+// }
 
 // -------------------Get All Pending Data--------------
 

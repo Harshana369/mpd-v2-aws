@@ -690,54 +690,53 @@ router.put("/saveProjectOnlineData", async (req, res) => {
     for (let i = 0; i < projectOnline.length; i++) {
       const taskRef = projectOnline[i].Task_Ref;
       const matchingObject = posts.find((obj) => obj.Task_Ref === taskRef);
-      if (matchingObject.Task_Ref === taskRef) {
-        // console.log("Editing new object");
 
-        // Update the matching object in the collection
-        matchingObject.Site_Id = projectOnline[i].siteId;
-        matchingObject.Site_Name = projectOnline[i].siteName;
-        matchingObject.Handover = projectOnline[i].handover;
-        matchingObject.Project = projectOnline[i].project;
-        matchingObject.Scope = projectOnline[i].scope;
-        matchingObject.Site_Engineer = projectOnline[i].siteEngineer;
-        matchingObject.Sub_Contractor = projectOnline[i].subContractor;
-        matchingObject.Task_Assigned = projectOnline[i].taskAssigned;
-        matchingObject.Task_Commenced = projectOnline[i].taskCommenced;
+      if (matchingObject) {
+        // console.log("Editing");
+
+        //  // Update the matching object in the collection
+        matchingObject.Site_Id = projectOnline[i].Site_Id;
+        matchingObject.Site_Name = projectOnline[i].Site_Name;
+        matchingObject.Handover = projectOnline[i].Handover;
+        matchingObject.Project = projectOnline[i].Project;
+        matchingObject.Scope = projectOnline[i].Scope;
+        matchingObject.Site_Engineer = projectOnline[i].Site_Engineer;
+        matchingObject.Sub_Contractor = projectOnline[i].Sub_Contractor;
+        matchingObject.Task_Assigned = projectOnline[i].Task_Assigned;
+        matchingObject.Task_Commenced = projectOnline[i].Task_Commenced;
         matchingObject.Installation_Completed =
-          projectOnline[i].installationCompleted;
-        matchingObject.Commission = projectOnline[i].commission;
-        matchingObject.PAT_Pass = projectOnline[i].PATPass;
-        matchingObject.SAR_Pass = projectOnline[i].SARPass;
-        matchingObject.On_air = projectOnline[i].onAir;
-        matchingObject.BOQ_Submit = projectOnline[i].BOQSubmit;
-        matchingObject.BOQ_Approve = projectOnline[i].BOQApprove;
-        matchingObject.PR_Raise = projectOnline[i].PRRaise;
+          projectOnline[i].Installation_Completed;
+        matchingObject.Commission = projectOnline[i].Commission;
+        matchingObject.PAT_Pass = projectOnline[i].PAT_Pass;
+        matchingObject.SAR_Pass = projectOnline[i].SAR_Pass;
+        matchingObject.On_air = projectOnline[i].On_air;
+        matchingObject.BOQ_Submit = projectOnline[i].BOQ_Submit;
+        matchingObject.BOQ_Approve = projectOnline[i].BOQ_Approve;
+        matchingObject.PR_Raise = projectOnline[i].PR_Raise;
 
-        // Save the updated object
+        //  // Save the updated object
         await matchingObject.save();
       } else {
-        // Create a new object in the collection
-
-        // console.log("Add new objects");
+        // console.log("add");
         await Posts.create({
           Task_Ref: taskRef,
-          Site_Id: projectOnline[i].siteId,
-          Site_Name: projectOnline[i].siteName,
-          Handover: projectOnline[i].handover,
-          Project: projectOnline[i].project,
-          Scope: projectOnline[i].scope,
-          Site_Engineer: projectOnline[i].siteEngineer,
-          Sub_Contractor: projectOnline[i].subContractor,
-          Task_Assigned: projectOnline[i].taskAssigned,
-          Task_Commenced: projectOnline[i].taskCommenced,
-          Installation_Completed: projectOnline[i].installationCompleted,
-          Commission: projectOnline[i].commission,
-          PAT_Pass: projectOnline[i].PATPass,
-          SAR_Pass: projectOnline[i].SARPass,
-          On_air: projectOnline[i].onAir,
-          BOQ_Submit: projectOnline[i].BOQSubmit,
-          BOQ_Approve: projectOnline[i].BOQApprove,
-          PR_Raise: projectOnline[i].PRRaise,
+          Site_Id: projectOnline[i].Site_Id,
+          Site_Name: projectOnline[i].Site_Name,
+          Handover: projectOnline[i].Handover,
+          Project: projectOnline[i].Project,
+          Scope: projectOnline[i].Scope,
+          Site_Engineer: projectOnline[i].Site_Engineer,
+          Sub_Contractor: projectOnline[i].Sub_Contractor,
+          Task_Assigned: projectOnline[i].Task_Assigned,
+          Task_Commenced: projectOnline[i].Task_Commenced,
+          Installation_Completed: projectOnline[i].Installation_Completed,
+          Commission: projectOnline[i].Commission,
+          PAT_Pass: projectOnline[i].PAT_Pass,
+          SAR_Pass: projectOnline[i].SAR_Pass,
+          On_air: projectOnline[i].On_air,
+          BOQ_Submit: projectOnline[i].BOQ_Submit,
+          BOQ_Approve: projectOnline[i].BOQ_Approve,
+          PR_Raise: projectOnline[i].PR_Raise,
         });
       }
     }
