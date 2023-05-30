@@ -91,7 +91,7 @@ router.get("/mobitelProjectsDatabases", async (req, res, next) => {
       projectsHandOverDataCount: getProjectsHandOverDataCount(posts, Project),
       projectsPatDataCount: getProjectsPatDataCount(posts, Project),
       projectsOnAirDataCount: getProjectsOnAirDataCount(posts, Project),
-      //   HoldSitesDataforSquares: getHoldSitesData(posts),
+      // HoldSitesDataforSquares: getHoldSitesData(posts,Project),
       projectScopeData: getProjectScopeData(posts, Project),
       projectHandOverData: getProjectsHandOverData(posts, Project),
       projectsPatData: getProjectsPatData(posts, Project),
@@ -264,6 +264,24 @@ function getProjectsOnAirData(posts, projectName) {
   return onAirData;
 }
 
+function getHoldSitesData(posts, Project) {
+  var holdData = [];
+
+  if (projectName === "All Projects") {
+    holdData.push(...posts.filter((obj) => obj.On_air !== null));
+
+    return holdData;
+  } else {
+    holdData.push(
+      ...posts
+        .filter((obj) => obj.Project === projectName)
+        .filter((obj) => obj.On_air !== null)
+    );
+  }
+
+  //   console.log(onAirData);
+  return holdData;
+}
 // ------------------------------------------------------------------------------------------------------------------
 // --------------------------  Get projects name array  -------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------
@@ -363,8 +381,8 @@ router.get(
         columnChartData: getchartData(posts), // Graph data of number of sites Mobilized in each month sent to front end Appwebsitevisits.
         XaxisDataForTheGraphs: getXaxisData(), // x axis data labels array sent to the Column graphs front end.
         ProjectCompletionForFrontEnd: getProjectCompletionData(posts), // Data for Front end Mobitel Projects Insights project Completion Donut Graph.
-        weeklyProgressDataForFrontEnd: getWeeklyProgressData(posts), // Data for Front end Mobitel Projects Insights Weekly Progress Graph.
-        SevenDaysOfWeek: getSevenDaysOfWeek(), // 7 Days of Week going to front end weekly progress column graph.
+        weeklyProgressDataForFrontEnd: getMonthlyProgressData(posts), // Data for Front end Mobitel Projects Insights Weekly Progress Graph.
+        SevenDaysOfWeek: getLast30Days(), // 7 Days of Week going to front end weekly progress column graph.
       });
     });
   }
@@ -410,14 +428,96 @@ function getXaxisData() {
 //--------------------- Functions for Getting Graph Data to the Front End of Mobitel Project Databases ----------------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-function getchartData(posts) {
-  var installedData = [];
-  var commissioned = [];
-  var sarData = [];
-  var patData = [];
-  var onairData = [];
+// function getchartData(posts) {
+//   var installedData = [];
+//   var commissioned = [];
+//   var sarData = [];
+//   var patData = [];
+//   var onairData = [];
 
-  var theMonths = new Array(
+//   var theMonths = new Array(
+//     "01",
+//     "02",
+//     "03",
+//     "04",
+//     "05",
+//     "06",
+//     "07",
+//     "08",
+//     "09",
+//     "10",
+//     "11",
+//     "12"
+//   );
+//   var now = new Date();
+
+//   var monthsArrayReversed = []; // Move this declaration outside the loop
+
+//   for (var i = 0; i < 12; i++) {
+//     var future = new Date(now.getFullYear(), now.getMonth() - i, 1);
+//     var month = theMonths[future.getMonth()];
+//     var year = future.getFullYear();
+//     var monthsCountFrom2015 = (year - 2014) * 12;
+
+//     for (var j = 0; j < monthsCountFrom2015; j++) {
+//       monthsArrayReversed.push(
+//         future.getFullYear().toString() + "-" + theMonths[future.getMonth()]
+//       );
+//       future.setMonth(future.getMonth() - 1);
+//     }
+//   }
+
+//   let monthsArray = monthsArrayReversed.reverse();
+
+//   for (var i = 0; i < monthsArray.length; i++) {
+//     installedData[i] = posts
+//       .filter((obj) => obj.Installation_Completed !== null)
+//       .filter(
+//         (obj) => obj.Installation_Completed.slice(0, 7) === monthsArray[i]
+//       ).length;
+//     commissioned[i] = posts
+//       .filter((obj) => obj.Commission !== null)
+//       .filter((obj) => obj.Commission.slice(0, 7) === monthsArray[i]).length;
+//     sarData[i] = posts
+//       .filter((obj) => obj.SAR_Pass !== null)
+//       .filter((obj) => obj.SAR_Pass.slice(0, 7) === monthsArray[i]).length;
+//     patData[i] = posts
+//       .filter((obj) => obj.PAT_Pass !== null)
+//       .filter((obj) => obj.PAT_Pass.slice(0, 7) === monthsArray[i]).length;
+//     onairData[i] = posts
+//       .filter((obj) => obj.On_air !== null)
+//       .filter((obj) => obj.On_air.slice(0, 7) === monthsArray[i]).length;
+//   }
+
+//   let chartData = [];
+//   let LastYearOnAir = onairData.slice(
+//     onairData.length - 13,
+//     onairData.length - 1
+//   );
+//   let LastYearPat = patData.slice(patData.length - 13, patData.length - 1);
+//   let LastYearSar = sarData.slice(sarData.length - 13, sarData.length - 1);
+//   let LastYearCommissioned = commissioned.slice(
+//     commissioned.length - 13,
+//     commissioned.length - 1
+//   );
+//   let LastYearInstalled = installedData.slice(
+//     installedData.length - 13,
+//     installedData.length - 1
+//   );
+
+//   chartData.push(
+//     { name: "On Air", type: "column", data: LastYearOnAir },
+//     { name: "PAT", type: "column", data: LastYearPat },
+//     { name: "SAR", type: "column", data: LastYearSar },
+//     { name: "Commissioned", type: "column", data: LastYearCommissioned },
+//     { name: "Installed", type: "column", data: LastYearInstalled }
+//   );
+
+//   return chartData;
+// }
+
+function getchartData(posts) {
+  const theMonths = [
     "01",
     "02",
     "03",
@@ -429,104 +529,51 @@ function getchartData(posts) {
     "09",
     "10",
     "11",
-    "12"
-  );
-  var now = new Date();
+    "12",
+  ];
+  const now = new Date();
 
-  for (var i = 0; i < 12; i++) {
-    var future = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    var month = theMonths[future.getMonth()];
-    var year = future.getFullYear();
-    var monthsArrayReversed = [];
-    var monthsCountFrom2015 = (year - 2014) * 12;
-
-    for (var i = 0; i < monthsCountFrom2015; i++) {
-      monthsArrayReversed.push(
-        now.getFullYear().toString() + "-" + theMonths[now.getMonth()]
-      );
-      now.setMonth(now.getMonth() - 1);
-    }
-    monthsArrayReversed.reverse();
+  const monthsArray = [];
+  for (let i = 0; i < 12; i++) {
+    const future = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const month = theMonths[future.getMonth()];
+    const year = future.getFullYear();
+    monthsArray.push(`${year}-${month}`);
   }
 
-  let monthsArray = monthsArrayReversed;
-  // console.log(monthsArray);
-  // monthsArray = ['2021-02', '2021-03','2021-04', '2021-05','2021-06', '2021-07','2021-08', '2021-09','2021-10', '2021-11','2021-12', '2022-01']
-  // console.log(monthsCountFrom2015);
-  for (var i = 0; i < monthsCountFrom2015; i++) {
-    (installedData[i] = posts
-      .filter((obj) => obj.Installation_Completed !== null)
-      .filter(
-        (obj) => obj.Installation_Completed.slice(0, 7) === monthsArray[i]
-      ).length),
-      (commissioned[i] = posts
-        .filter((obj) => obj.Commission !== null)
-        .filter((obj) => obj.Commission.slice(0, 7) === monthsArray[i]).length),
-      (sarData[i] = posts
-        .filter((obj) => obj.SAR_Pass !== null)
-        .filter((obj) => obj.SAR_Pass.slice(0, 7) === monthsArray[i]).length),
-      (patData[i] = posts
-        .filter((obj) => obj.PAT_Pass !== null)
-        .filter((obj) => obj.PAT_Pass.slice(0, 7) === monthsArray[i]).length),
-      (onairData[i] = posts
-        .filter((obj) => obj.On_air !== null)
-        .filter((obj) => obj.On_air.slice(0, 7) === monthsArray[i]).length);
-  }
-  // ----------------------------------------------------------------------------------------------------------------------------------------------
+  const getDataCountForMonth = (property, month) =>
+    posts.reduce(
+      (count, obj) =>
+        obj[property] && obj[property].slice(0, 7) === month
+          ? count + 1
+          : count,
+      0
+    );
 
-  let myarray2 = installedData,
-    cumilative2 = [];
-  let myarray3 = commissioned,
-    cumilative3 = [];
-  let myarray4 = sarData,
-    cumilative4 = [];
-  let myarray5 = patData,
-    cumilative5 = [];
-  let myarray6 = onairData,
-    cumilative6 = [];
-
-  for (let i = 0, s = myarray2[0]; i < myarray2.length; i++, s += myarray2[i])
-    cumilative2.push(s);
-  for (let i = 0, s = myarray3[0]; i < myarray3.length; i++, s += myarray3[i])
-    cumilative3.push(s);
-  for (let i = 0, s = myarray4[0]; i < myarray4.length; i++, s += myarray4[i])
-    cumilative4.push(s);
-  for (let i = 0, s = myarray5[0]; i < myarray5.length; i++, s += myarray5[i])
-    cumilative5.push(s);
-  for (let i = 0, s = myarray6[0]; i < myarray6.length; i++, s += myarray6[i])
-    cumilative6.push(s);
-
-  let chartData = [];
-  let LastYearCum6 = cumilative6.slice(
-    cumilative6.length - 13,
-    cumilative6.length - 1
-  ); // On air
-  let LastYearCum5 = cumilative5.slice(
-    cumilative5.length - 13,
-    cumilative5.length - 1
+  const installedData = monthsArray.map((month) =>
+    getDataCountForMonth("Installation_Completed", month)
   );
-  let LastYearCum4 = cumilative4.slice(
-    cumilative4.length - 13,
-    cumilative4.length - 1
+  const commissioned = monthsArray.map((month) =>
+    getDataCountForMonth("Commission", month)
   );
-  let LastYearCum3 = cumilative3.slice(
-    cumilative3.length - 13,
-    cumilative3.length - 1
+  const sarData = monthsArray.map((month) =>
+    getDataCountForMonth("SAR_Pass", month)
   );
-  let LastYearCum2 = cumilative2.slice(
-    cumilative2.length - 13,
-    cumilative2.length - 1
+  const patData = monthsArray.map((month) =>
+    getDataCountForMonth("PAT_Pass", month)
+  );
+  const onairData = monthsArray.map((month) =>
+    getDataCountForMonth("On_air", month)
   );
 
-  chartData.push(
-    { name: "On Air", type: "column", data: LastYearCum6 },
-    { name: "PAT", type: "column", data: LastYearCum5 },
-    { name: "SAR", type: "column", data: LastYearCum4 },
-    { name: "Commisioned", type: "column", data: LastYearCum3 },
-    { name: "Installed", type: "column", data: LastYearCum2 }
-  );
+  const chartData = [
+    { name: "On Air", type: "column", data: onairData },
+    { name: "PAT", type: "column", data: patData },
+    { name: "SAR", type: "column", data: sarData },
+    { name: "Commissioned", type: "column", data: commissioned },
+    { name: "Installed", type: "column", data: installedData },
+  ];
 
-  //console.log(chartData);
   return chartData;
 }
 
@@ -577,53 +624,111 @@ function getHandOverData(posts) {
 //---------- Functions for Getting Last Week Progress Graph Data to the Front End of Mobitel Project Databases Insights------
 //---------------------------------------------------------------------------------------------------------------------------
 
-function getWeeklyProgressData(posts) {
+// function getWeeklyProgressData(posts) {
+//   var onairData = [];
+//   var onairTargetData = [];
+
+//   var lastWeekDates = [];
+//   var yesterdayDate = [];
+//   var yesterdayMonth = [];
+//   var yesterdayYear = [];
+
+//   for (var i = 0; i < 7; i++) {
+//     yesterdayDate[i] = new Date(
+//       new Date().setDate(new Date().getDate() - i)
+//     ).getDate();
+//     yesterdayMonth[i] = (
+//       "0" +
+//       (new Date(new Date().setDate(new Date().getDate() - i)).getMonth() + 1)
+//     ).slice(-2);
+//     yesterdayYear[i] = new Date(
+//       new Date().setDate(new Date().getDate() - i)
+//     ).getFullYear();
+
+//     lastWeekDates[i] =
+//       yesterdayYear[i] + "-" + yesterdayMonth[i] + "-" + yesterdayDate[i];
+//   }
+//   lastWeekDates.reverse();
+
+//   // console.log(lastWeekDates);
+//   // lastWeekDates = ['2022-01-10','2022-01-11','2022-01-12','2022-01-13','2022-01-14','2022-01-15','2022-01-16']
+
+//   for (var i = 0; i < 7; i++) {
+//     onairData[i] = posts.filter(
+//       (obj) => obj.On_air === lastWeekDates[i]
+//     ).length;
+//   }
+//   // ----------------------------------------------------------------------------------------------------------------------------------------------
+//   // console.log(onairData);
+
+//   let onAirArray = onairData;
+
+//   let weeklyProgressData = [];
+//   weeklyProgressData.push({
+//     name: "Completed",
+//     type: "column",
+//     data: onAirArray,
+//   });
+
+//   console.log(weeklyProgressData);
+//   return weeklyProgressData;
+// }
+
+function getMonthlyProgressData(posts) {
   var onairData = [];
-  var onairTargetData = [];
+  var patData = [];
+  var commissionedData = [];
 
   var lastWeekDates = [];
-  var yesterdayDate = [];
-  var yesterdayMonth = [];
-  var yesterdayYear = [];
+  var currentDate = new Date();
 
-  for (var i = 0; i < 7; i++) {
-    yesterdayDate[i] = new Date(
-      new Date().setDate(new Date().getDate() - i)
-    ).getDate();
-    yesterdayMonth[i] = (
-      "0" +
-      (new Date(new Date().setDate(new Date().getDate() - i)).getMonth() + 1)
-    ).slice(-2);
-    yesterdayYear[i] = new Date(
-      new Date().setDate(new Date().getDate() - i)
-    ).getFullYear();
-
-    lastWeekDates[i] =
-      yesterdayYear[i] + "-" + yesterdayMonth[i] + "-" + yesterdayDate[i];
+  for (var i = 0; i < 30; i++) {
+    var date = new Date(currentDate.getTime() - i * 24 * 60 * 60 * 1000);
+    var dateString = date.toISOString().split("T")[0];
+    lastWeekDates.push(dateString);
   }
-  lastWeekDates.reverse();
 
-  // console.log(lastWeekDates);
-  // lastWeekDates = ['2022-01-10','2022-01-11','2022-01-12','2022-01-13','2022-01-14','2022-01-15','2022-01-16']
+  for (var i = 0; i < 30; i++) {
+    commissionedData[i] = posts.filter(
+      (obj) => obj.Commission === lastWeekDates[i]
+    ).length;
+  }
 
-  for (var i = 0; i < 7; i++) {
+  for (var i = 0; i < 30; i++) {
+    patData[i] = posts.filter(
+      (obj) => obj.PAT_Pass === lastWeekDates[i]
+    ).length;
+  }
+
+  for (var i = 0; i < 30; i++) {
     onairData[i] = posts.filter(
       (obj) => obj.On_air === lastWeekDates[i]
     ).length;
   }
-  // ----------------------------------------------------------------------------------------------------------------------------------------------
-  // console.log(onairData);
 
-  let onAirArray = onairData;
+  let commissionedArray = commissionedData.reverse();
+  let patPassArray = patData.reverse();
+  let onAirArray = onairData.reverse();
 
   let weeklyProgressData = [];
-  weeklyProgressData.push({
-    name: "Completed",
-    type: "column",
-    data: onAirArray,
-  });
+  weeklyProgressData.push(
+    {
+      name: "Commissioned",
+      type: "column",
+      data: commissionedArray,
+    },
+    {
+      name: "PAT",
+      type: "column",
+      data: patPassArray,
+    },
+    {
+      name: "OnAir",
+      type: "column",
+      data: onAirArray,
+    }
+  );
 
-  // console.log(weeklyProgressData);
   return weeklyProgressData;
 }
 
@@ -631,16 +736,36 @@ function getWeeklyProgressData(posts) {
 //-------------- Function for 7 days of week for Front End Weekly Progress Graph of Mobitel Project Databases ---------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-function getSevenDaysOfWeek() {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+function getLast30Days() {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
 
   let today = new Date();
-  let start = today.getDay();
-  if (start == 6) {
-    return days;
-  } else {
-    return days.slice(start).concat(days.slice(0, start));
+  let last30Days = [];
+
+  for (let i = 0; i < 30; i++) {
+    let date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+    let month = months[date.getMonth()];
+    let day = date.getDate();
+    last30Days.push(`${month} ${day}`);
   }
+
+  const FinalLast30Day = last30Days.reverse();
+
+  // console.log(FinalLast30Day);
+  return FinalLast30Day;
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------
