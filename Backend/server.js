@@ -42,6 +42,11 @@ const poPending = require("./routes/columnHide/poPendingColumnHide.js");
 const invoicePending = require("./routes/columnHide/invoiceSubmissionPendingColumnHide.js");
 const poClosurePending = require("./routes/columnHide/poClosurePendingColumnHide.js");
 
+// vender part
+
+const huaweiVenderColumn = require("./routes/huaweiVenderColumnRoutes.js");
+const huaweiVenderRow = require("./routes/huaweiVenderRowRoutes.js");
+
 // Error Handler Middleware
 app.use(errorHandler);
 
@@ -62,6 +67,11 @@ app.use("/mpd/api", prPending);
 app.use("/mpd/api", poPending);
 app.use("/mpd/api", invoicePending);
 app.use("/mpd/api", poClosurePending);
+
+// Huawei Vender
+
+app.use("/mpd/api", huaweiVenderColumn);
+app.use("/mpd/api", huaweiVenderRow);
 
 // Boq System with api calling
 require("./routes/getBoqRoutes.js");
