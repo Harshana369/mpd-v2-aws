@@ -1,11 +1,14 @@
 const app = require("express").Router();
 
 const Column = require("../models/huaweiVenderColumnModel.js");
+const Permanent = require("../models/huaweiVenderPermanentCoumnModel.js");
 
 // Retrieve columns from MongoDB
 app.get("/huawei/columns", async (req, res) => {
   try {
-    const columns = await Column.find();
+    const Temp1 = await Permanent.find();
+    const Temp2 = await Column.find();
+    const columns = Temp1.concat(Temp2);
     res.json(columns);
   } catch (error) {
     console.error("Error fetching columns:", error);
@@ -17,6 +20,17 @@ app.get("/huawei/columns", async (req, res) => {
 app.post("/huawei/columns", async (req, res) => {
   try {
     const newColumn = await Column.create(req.body);
+    res.json(newColumn);
+  } catch (error) {
+    console.error("Error adding column:", error);
+    res.status(500).json({ error: "Error adding column" });
+  }
+});
+
+// permanent column
+app.post("/huawei/permanent/columns", async (req, res) => {
+  try {
+    const newColumn = await Permanent.create(req.body);
     res.json(newColumn);
   } catch (error) {
     console.error("Error adding column:", error);

@@ -27,15 +27,14 @@ app.post("/huawei/rows", async (req, res) => {
 // Update a row in MongoDB
 app.put("/huawei/rows/:id", async (req, res) => {
   const data = req.body;
-  let temp = [];
-  temp = data.filter((v) => v !== "Empty");
+  const temp = data.filter((value) => value !== "Empty" && value !== null);
 
   try {
     const { id } = req.params;
-    const values = temp; // Access the request body directly since it is an array
+    const values = temp;
     const updatedRow = await Row.findByIdAndUpdate(
       id,
-      { $set: { values } }, // Use $set to update the 'values' field
+      { $set: { values } },
       { new: true }
     );
     res.json(updatedRow);
