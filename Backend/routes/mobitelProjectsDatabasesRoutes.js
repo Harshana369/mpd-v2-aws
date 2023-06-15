@@ -516,6 +516,65 @@ function getXaxisData() {
 //   return chartData;
 // }
 
+// function getchartData(posts) {
+//   const theMonths = [
+//     "01",
+//     "02",
+//     "03",
+//     "04",
+//     "05",
+//     "06",
+//     "07",
+//     "08",
+//     "09",
+//     "10",
+//     "11",
+//     "12",
+//   ];
+//   const now = new Date();
+
+//   const monthsArray = [];
+//   for (let i = 0; i < 12; i++) {
+//     const future = new Date(now.getFullYear(), now.getMonth() - i, 1);
+//     const month = theMonths[future.getMonth()];
+//     const year = future.getFullYear();
+//     monthsArray.push(`${year}-${month}`);
+//   }
+
+//   const getDataCountForMonth = (property, month) =>
+//     posts.reduce((count, obj) => {
+//       const postMonth = obj[property] ? obj[property].slice(0, 7) : null;
+//       return postMonth === month ? count + 1 : count;
+//     }, 0);
+
+//   const installedData = monthsArray.map((month) =>
+//     getDataCountForMonth("Installation_Completed", month)
+//   );
+
+//   const commissioned = monthsArray.map((month) =>
+//     getDataCountForMonth("Commission", month)
+//   );
+//   const sarData = monthsArray.map((month) =>
+//     getDataCountForMonth("SAR_Pass", month)
+//   );
+//   const patData = monthsArray.map((month) =>
+//     getDataCountForMonth("PAT_Pass", month)
+//   );
+//   const onairData = monthsArray.map((month) =>
+//     getDataCountForMonth("On_air", month)
+//   );
+
+//   const chartData = [
+//     { name: "On Air", type: "column", data: onairData },
+//     { name: "PAT", type: "column", data: patData },
+//     { name: "SAR", type: "column", data: sarData },
+//     { name: "Commissioned", type: "column", data: commissioned },
+//     { name: "Installed", type: "column", data: installedData },
+//   ];
+
+//   return chartData;
+// }
+
 function getchartData(posts) {
   const theMonths = [
     "01",
@@ -531,9 +590,10 @@ function getchartData(posts) {
     "11",
     "12",
   ];
-  const now = new Date();
 
+  const now = new Date();
   const monthsArray = [];
+
   for (let i = 0; i < 12; i++) {
     const future = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const month = theMonths[future.getMonth()];
@@ -542,37 +602,34 @@ function getchartData(posts) {
   }
 
   const getDataCountForMonth = (property, month) =>
-    posts.reduce(
-      (count, obj) =>
-        obj[property] && obj[property].slice(0, 7) === month
-          ? count + 1
-          : count,
-      0
-    );
-
-  const installedData = monthsArray.map((month) =>
-    getDataCountForMonth("Installation_Completed", month)
-  );
-  const commissioned = monthsArray.map((month) =>
-    getDataCountForMonth("Commission", month)
-  );
-  const sarData = monthsArray.map((month) =>
-    getDataCountForMonth("SAR_Pass", month)
-  );
-  const patData = monthsArray.map((month) =>
-    getDataCountForMonth("PAT_Pass", month)
-  );
-  const onairData = monthsArray.map((month) =>
-    getDataCountForMonth("On_air", month)
-  );
+    posts.reduce((count, obj) => {
+      const postMonth = obj[property]?.slice(0, 7) || null;
+      return postMonth === month ? count + 1 : count;
+    }, 0);
 
   const chartData = [
-    { name: "On Air", type: "column", data: onairData },
-    { name: "PAT", type: "column", data: patData },
-    { name: "SAR", type: "column", data: sarData },
-    { name: "Commissioned", type: "column", data: commissioned },
-    { name: "Installed", type: "column", data: installedData },
+    { name: "On Air", type: "column", data: [] },
+    { name: "PAT", type: "column", data: [] },
+    { name: "SAR", type: "column", data: [] },
+    { name: "Commissioned", type: "column", data: [] },
+    { name: "Installed", type: "column", data: [] },
   ];
+
+  for (const month of monthsArray) {
+    chartData[0].data.push(getDataCountForMonth("On_air", month));
+    chartData[1].data.push(getDataCountForMonth("PAT_Pass", month));
+    chartData[2].data.push(getDataCountForMonth("SAR_Pass", month));
+    chartData[3].data.push(getDataCountForMonth("Commission", month));
+    chartData[4].data.push(
+      getDataCountForMonth("Installation_Completed", month)
+    );
+  }
+
+  chartData.forEach((item) => {
+    item.data.reverse(); // Reverse the data array
+  });
+
+  // console.log(chartData);
 
   return chartData;
 }

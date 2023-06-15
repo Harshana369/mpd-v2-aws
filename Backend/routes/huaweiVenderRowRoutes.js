@@ -27,7 +27,7 @@ app.post("/huawei/rows", async (req, res) => {
 // Update a row in MongoDB
 app.put("/huawei/rows/:id", async (req, res) => {
   const data = req.body;
-  const temp = data.filter((value) => value !== "Empty" && value !== null);
+  const temp = data.filter((value) => value !== "Empty");
 
   try {
     const { id } = req.params;
