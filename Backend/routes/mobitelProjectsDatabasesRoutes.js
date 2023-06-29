@@ -381,8 +381,11 @@ router.get(
         columnChartData: getchartData(posts), // Graph data of number of sites Mobilized in each month sent to front end Appwebsitevisits.
         XaxisDataForTheGraphs: getXaxisData(), // x axis data labels array sent to the Column graphs front end.
         ProjectCompletionForFrontEnd: getProjectCompletionData(posts), // Data for Front end Mobitel Projects Insights project Completion Donut Graph.
+        PatCompletionForFrontEnd: getPatCompletionData(posts),
+        SarCompletionForFrontEnd: getSarCompletionData(posts),
+        CommissionCompletionForFrontEnd: getCommissionCompletionData(posts),
         weeklyProgressDataForFrontEnd: getMonthlyProgressData(posts), // Data for Front end Mobitel Projects Insights Weekly Progress Graph.
-        SevenDaysOfWeek: getLast30Days(), // 7 Days of Week going to front end weekly progress column graph.
+        SevenDaysOfWeek: getLast30Days(), // 30 Days of Week going to front end weekly progress column graph.
       });
     });
   }
@@ -648,8 +651,52 @@ function getProjectCompletionData(posts) {
 
   projectCompletionChartData.push(completed, pending, hold);
 
-  //console.log(projectCompletionChartData);
+  // console.log(projectCompletionChartData);
   return projectCompletionChartData;
+}
+
+function getPatCompletionData(posts) {
+  (Pat = getOnPatData(posts)), (handOverSites = getHandOverData(posts));
+
+  const PatCompletionChartData = [];
+  const completed = Pat;
+  const pending = handOverSites - Pat;
+  const hold = 0;
+
+  PatCompletionChartData.push(completed, pending, hold);
+
+  // console.log(PatCompletionChartData);
+
+  return PatCompletionChartData;
+}
+
+function getSarCompletionData(posts) {
+  (Sar = getOnSarData(posts)), (handOverSites = getHandOverData(posts));
+
+  const SarCompletionChartData = [];
+  const completed = Sar;
+  const pending = handOverSites - Sar;
+  const hold = 0;
+
+  SarCompletionChartData.push(completed, pending, hold);
+
+  // console.log(SarCompletionChartData);
+  return SarCompletionChartData;
+}
+
+function getCommissionCompletionData(posts) {
+  (Commission = getOnCommissionedData(posts)),
+    (handOverSites = getHandOverData(posts));
+
+  const CommissionCompletionChartData = [];
+  const completed = Commission;
+  const pending = handOverSites - Commission;
+  const hold = 0;
+
+  CommissionCompletionChartData.push(completed, pending, hold);
+
+  // console.log(CommissionCompletionChartData);
+  return CommissionCompletionChartData;
 }
 
 //---------------------------------------------------------------------------------------------------------------------------
@@ -662,6 +709,27 @@ function getOnAirData(posts) {
   OnAirData = posts.filter((obj) => obj.On_air !== null).length;
   //console.log(OnAirData);
   return OnAirData;
+}
+
+function getOnPatData(posts) {
+  var PatData = [];
+  PatData = posts.filter((obj) => obj.PAT_Pass !== null).length;
+  // console.log(PatData);
+  return PatData;
+}
+
+function getOnSarData(posts) {
+  var SarData = [];
+  SarData = posts.filter((obj) => obj.SAR_Pass !== null).length;
+  //console.log(SarData);
+  return SarData;
+}
+
+function getOnCommissionedData(posts) {
+  var Commission = [];
+  Commission = posts.filter((obj) => obj.Commission !== null).length;
+  //console.log(SarData);
+  return Commission;
 }
 
 //---------------------------------------------------------------------------------------------------------------------------

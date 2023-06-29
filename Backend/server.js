@@ -44,8 +44,10 @@ const poClosurePending = require("./routes/columnHide/poClosurePendingColumnHide
 
 // vender part
 
-const huaweiVenderColumn = require("./routes/huaweiVenderColumnRoutes.js");
-const huaweiVenderRow = require("./routes/huaweiVenderRowRoutes.js");
+const VenderColumn = require("./routes/VenderColumnRoutes.js");
+const VenderRow = require("./routes/VenderRowRoutes.js");
+const huaweiVenderInsights = require("./routes/Vender/Huawei/HuaweiInsights.js");
+const zteVenderInsights = require("./routes/Vender/ZTE/ZTEInsights.js");
 
 // Error Handler Middleware
 app.use(errorHandler);
@@ -70,8 +72,10 @@ app.use("/mpd/api", poClosurePending);
 
 // Huawei Vender
 
-app.use("/mpd/api", huaweiVenderColumn);
-app.use("/mpd/api", huaweiVenderRow);
+app.use("/mpd/api", VenderColumn);
+app.use("/mpd/api", VenderRow);
+app.use("/mpd/api", huaweiVenderInsights);
+app.use("/mpd/api", zteVenderInsights);
 
 // Boq System with api calling
 require("./routes/getBoqRoutes.js");
