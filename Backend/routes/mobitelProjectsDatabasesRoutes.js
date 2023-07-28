@@ -87,57 +87,102 @@ router.get("/mobitelProjectsDatabases", async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      projectsScopeDataCount: getProjectsScopeDataCount(posts, Project),
+      // projectsScopeDataCount: getProjectsScopeDataCount(posts, Project),
       projectsHandOverDataCount: getProjectsHandOverDataCount(posts, Project),
       projectsPatDataCount: getProjectsPatDataCount(posts, Project),
       projectsOnAirDataCount: getProjectsOnAirDataCount(posts, Project),
       // HoldSitesDataforSquares: getHoldSitesData(posts,Project),
-      projectScopeData: getProjectScopeData(posts, Project),
+      // projectScopeData: getProjectScopeData(posts, Project),
+      projectsCommissionedDataCount: getProjectsCommissionedDataCount(
+        posts,
+        Project
+      ),
       projectHandOverData: getProjectsHandOverData(posts, Project),
       projectsPatData: getProjectsPatData(posts, Project),
       projectsOnAirData: getProjectsOnAirData(posts, Project),
+      projectsCommissionedData: getProjectCommissionedData(posts, Project),
     });
   });
 });
 
+// //---------------------------------------------------------------------------------------------------------------------------
+// //--------------------- Function for Getting Get Scope Data to the Front End Squares of Mobitel Projects ---------------------
+// //---------------------------------------------------------------------------------------------------------------------------
+
+// function getProjectsScopeDataCount(posts, projectName) {
+//   var ScopeDataCount = [];
+
+//   if (projectName === "All Projects") {
+//     ScopeDataCount.push(posts.filter((obj) => obj.Scope !== null).length);
+//     return ScopeDataCount;
+//   } else {
+//     ScopeDataCount.push(
+//       posts
+//         .filter((obj) => obj.Project === projectName)
+//         .filter((obj) => obj.Scope !== null).length
+//     );
+//   }
+
+//   return ScopeDataCount;
+// }
+
+// function getProjectScopeData(posts, projectName) {
+//   var scopeData = [];
+
+//   if (projectName === "All Projects") {
+//     scopeData.push(...posts.filter((obj) => obj.Scope !== null));
+
+//     return scopeData;
+//   } else {
+//     scopeData.push(
+//       ...posts
+//         .filter((obj) => obj.Project === projectName)
+//         .filter((obj) => obj.Scope !== null)
+//     );
+//   }
+
+//   //   console.log(scopeData);
+//   return scopeData;
+// }
+
 //---------------------------------------------------------------------------------------------------------------------------
-//--------------------- Function for Getting Get Scope Data to the Front End Squares of Mobitel Projects ---------------------
+//--------------------- Function for Getting Get Commissioned Data to the Front End Squares of Mobitel Projects ---------------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-function getProjectsScopeDataCount(posts, projectName) {
-  var ScopeDataCount = [];
+function getProjectsCommissionedDataCount(posts, projectName) {
+  var commissionedDataCount = [];
 
   if (projectName === "All Projects") {
-    ScopeDataCount.push(posts.filter((obj) => obj.Scope !== null).length);
-    return ScopeDataCount;
+    commissionedDataCount.push(
+      posts.filter((obj) => obj.Commissioned !== null).length
+    );
+    return commissionedDataCount;
   } else {
-    ScopeDataCount.push(
+    commissionedDataCount.push(
       posts
         .filter((obj) => obj.Project === projectName)
-        .filter((obj) => obj.Scope !== null).length
+        .filter((obj) => obj.Commissioned !== null).length
     );
   }
 
-  return ScopeDataCount;
+  return commissionedDataCount;
 }
 
-function getProjectScopeData(posts, projectName) {
-  var scopeData = [];
-
+function getProjectCommissionedData(posts, projectName) {
+  var commissionedData = [];
   if (projectName === "All Projects") {
-    scopeData.push(...posts.filter((obj) => obj.Scope !== null));
-
-    return scopeData;
+    commissionedData.push(...posts.filter((obj) => obj.Commissioned !== null));
+    return commissionedData;
   } else {
-    scopeData.push(
+    commissionedData.push(
       ...posts
         .filter((obj) => obj.Project === projectName)
-        .filter((obj) => obj.Scope !== null)
+        .filter((obj) => obj.Commissioned !== null)
     );
   }
 
-  //   console.log(scopeData);
-  return scopeData;
+  //   console.log(commissionedData);
+  return commissionedData;
 }
 
 //---------------------------------------------------------------------------------------------------------------------------
