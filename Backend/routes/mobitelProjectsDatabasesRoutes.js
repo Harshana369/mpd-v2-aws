@@ -154,17 +154,17 @@ function getProjectsCommissionedDataCount(posts, projectName) {
 
   if (projectName === "All Projects") {
     commissionedDataCount.push(
-      posts.filter((obj) => obj.Commissioned !== null).length
+      posts.filter((obj) => obj.Commission !== null).length
     );
     return commissionedDataCount;
   } else {
     commissionedDataCount.push(
       posts
         .filter((obj) => obj.Project === projectName)
-        .filter((obj) => obj.Commissioned !== null).length
+        .filter((obj) => obj.Commission !== null).length
     );
   }
-
+  // console.log(commissionedDataCount);
   return commissionedDataCount;
 }
 
@@ -181,7 +181,7 @@ function getProjectCommissionedData(posts, projectName) {
     );
   }
 
-  //   console.log(commissionedData);
+  // console.log(commissionedData);
   return commissionedData;
 }
 
@@ -195,6 +195,7 @@ function getProjectsHandOverDataCount(posts, projectName) {
   if (projectName === "All Projects") {
     handOverDataCount.push(posts.filter((obj) => obj.Handover !== null).length);
 
+    console.log(handOverDataCount);
     return handOverDataCount;
   } else {
     handOverDataCount.push(
@@ -204,7 +205,7 @@ function getProjectsHandOverDataCount(posts, projectName) {
     );
   }
 
-  //   console.log(handOverDataCount);
+  console.log(handOverDataCount);
   return handOverDataCount;
 }
 
@@ -223,7 +224,7 @@ function getProjectsHandOverData(posts, projectName) {
     );
   }
 
-  //   console.log(handOverData);
+  console.log(handOverData);
   return handOverData;
 }
 
