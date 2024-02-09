@@ -195,7 +195,6 @@ function getProjectsHandOverDataCount(posts, projectName) {
   if (projectName === "All Projects") {
     handOverDataCount.push(posts.filter((obj) => obj.Handover !== null).length);
 
-    console.log(handOverDataCount);
     return handOverDataCount;
   } else {
     handOverDataCount.push(
@@ -205,7 +204,6 @@ function getProjectsHandOverDataCount(posts, projectName) {
     );
   }
 
-  console.log(handOverDataCount);
   return handOverDataCount;
 }
 
@@ -224,7 +222,7 @@ function getProjectsHandOverData(posts, projectName) {
     );
   }
 
-  console.log(handOverData);
+  // console.log(handOverData);
   return handOverData;
 }
 
@@ -900,9 +898,68 @@ function getMonthlyProgressData(posts) {
     }
   );
 
+  //console.log(weeklyProgressData);
   return weeklyProgressData;
 }
 
+function getMonthlyProgressDataForSiteEnginner(posts) {
+  var onairData = [];
+  var patData = [];
+  var commissionedData = [];
+
+  var lastWeekDates = [];
+  var currentDate = new Date();
+
+  for (var i = 0; i < 30; i++) {
+    var date = new Date(currentDate.getTime() - i * 24 * 60 * 60 * 1000);
+    var dateString = date.toISOString().split("T")[0];
+    lastWeekDates.push(dateString);
+  }
+
+  for (var i = 0; i < 30; i++) {
+    commissionedData[i] = posts.filter(
+      (obj) => obj.Commission === lastWeekDates[i]
+    ).length;
+  }
+
+  for (var i = 0; i < 30; i++) {
+    patData[i] = posts.filter(
+      (obj) => obj.PAT_Pass === lastWeekDates[i]
+    ).length;
+  }
+
+  for (var i = 0; i < 30; i++) {
+    onairData[i] = posts.filter(
+      (obj) => obj.On_air === lastWeekDates[i]
+    ).length;
+  }
+
+  let commissionedArray = commissionedData.reverse();
+  let patPassArray = patData.reverse();
+  let onAirArray = onairData.reverse();
+
+  let weeklyProgressData = [];
+  weeklyProgressData.push(
+    {
+      name: "Commissioned",
+      type: "column",
+      data: commissionedArray,
+    },
+    {
+      name: "PAT",
+      type: "column",
+      data: patPassArray,
+    },
+    {
+      name: "OnAir",
+      type: "column",
+      data: onAirArray,
+    }
+  );
+
+  //console.log(weeklyProgressData);
+  return weeklyProgressData;
+}
 //---------------------------------------------------------------------------------------------------------------------------
 //-------------- Function for 7 days of week for Front End Weekly Progress Graph of Mobitel Project Databases ---------------
 //---------------------------------------------------------------------------------------------------------------------------
@@ -1040,6 +1097,77 @@ router.put("/saveProjectOnlineData", async (req, res) => {
     return res.status(200).json({
       success: "successfully added",
     });
+  });
+});
+
+router.get("/siteEngineerForMonthlyWorkProgress", async (req, res, next) => {
+  const { Project, Engineer } = req.query;
+
+  console.log(Project, Engineer);
+  console.log("run 1");
+  let reqQuery = {};
+
+  if (Project === "All Projects" && Engineer === "All siteEngineers") {
+    // return all data related to all Site_Engineers, without filtering by project
+    reqQuery = {};
+  } else if (Project === "All Projects") {
+    // return data related to the specified Site_Engineer for all projects
+    reqQuery = { Site_Engineer: Engineer };
+  } else if (Engineer === "All siteEngineers") {
+    // return data related to the specified Site_Engineer for all projects
+    reqQuery = { Project: Project };
+  } else {
+    // return data related to the specified project and Site_Engineer
+    reqQuery = { Project, Site_Engineer: Engineer };
+  }
+
+  const temp = await Posts.find(reqQuery).exec();
+
+  const siteEnginnerForTask = getMonthlyProgressDataForSiteEnginner(temp);
+
+  // console.log(siteEnginnerForTask);
+  return res.status(200).json({
+    success: true,
+    siteEnginnerForTask,
+  });
+});
+
+function getMonthsDate() {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  let today = new Date();
+  let last30Days = [];
+
+  for (let i = 0; i < 30; i++) {
+    let date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+    let month = months[date.getMonth()];
+    let day = date.getDate();
+    last30Days.push(`${month} ${day}`);
+  }
+
+  const FinalLast30Day = last30Days.reverse();
+
+  // console.log(FinalLast30Day);
+  return FinalLast30Day;
+}
+
+router.get("/getMonth", async (req, res, next) => {
+  return res.status(200).json({
+    success: true,
+    monthDay: getMonthsDate(),
   });
 });
 

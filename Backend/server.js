@@ -104,7 +104,7 @@ app.get("*", (req, res) =>
 
 // --------------------------------------------------------------------------
 
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 8072;
 
 const server = app.listen(PORT, () =>
   console.log(`Sever is up and running on port ${PORT}`)
