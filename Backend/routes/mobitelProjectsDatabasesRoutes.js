@@ -1042,7 +1042,118 @@ router.put("/saveProjectOnlineData", async (req, res) => {
   });
 });
 
-router.get("/siteEngineerForMonthlyWorkProgress", async (req, res, next) => {
+router.get("/siteEngineerForMonthlyWorkProgressNew", async (req, res, next) => {
+  try {
+    const { selectedSiteEngineer, selectedProject, fromDate, toDate } =
+      req.query;
+    console.log("---");
+    console.log(fromDate);
+    console.log(toDate);
+    console.log("---");
+
+    // Find posts within the specified date range and for the selected site engineers and projects
+    const commissionObjects = await Posts.find({
+      Site_Engineer: { $in: selectedSiteEngineer },
+      Project: { $in: selectedProject },
+      $or: [{ $and: [{ Commission: { $gte: fromDate, $lte: toDate } }] }],
+    });
+
+    // console.log("---com-----");
+    // console.log(commissionObjects);
+    // console.log("---com-----");
+
+    const patPassObjects = await Posts.find({
+      Site_Engineer: { $in: selectedSiteEngineer },
+      Project: { $in: selectedProject },
+      $or: [
+        {
+          $and: [{ PAT_Pass: { $gte: fromDate, $lte: toDate } }],
+        },
+      ],
+    });
+
+    // console.log("---pat----");
+    // console.log(patPassObjects);
+    // console.log("---pat-------");
+
+    const on_airObjects = await Posts.find({
+      Site_Engineer: { $in: selectedSiteEngineer },
+      Project: { $in: selectedProject },
+      $or: [{ $and: [{ On_air: { $gte: fromDate, $lte: toDate } }] }],
+    });
+
+    // console.log("------onair-----");
+    // console.log(on_airObjects);
+    // console.log("------onair-----");
+
+    // Count occurrences of each Site Engineer for each type
+    const countEngineers = (objects) => {
+      const engineerCount = {};
+      objects.forEach((obj) => {
+        if (engineerCount[obj.Site_Engineer]) {
+          engineerCount[obj.Site_Engineer]++;
+        } else {
+          engineerCount[obj.Site_Engineer] = 1;
+        }
+      });
+      return engineerCount;
+    };
+
+    const commissionCount = countEngineers(commissionObjects);
+    const patPassCount = countEngineers(patPassObjects);
+    const onAirCount = countEngineers(on_airObjects);
+
+    // console.log(commissionCount);
+    // console.log(patPassCount);
+    // console.log(onAirCount);
+
+    const FinalDataArray = [
+      {
+        name: "Commissioned",
+        type: "column",
+        data: selectedSiteEngineer.map(
+          (engineer) => commissionCount[engineer] || 0
+        ),
+      },
+      {
+        name: "PAT",
+        type: "column",
+        data: selectedSiteEngineer.map(
+          (engineer) => patPassCount[engineer] || 0
+        ),
+      },
+      {
+        name: "OnAir",
+        type: "column",
+        data: selectedSiteEngineer.map((engineer) => onAirCount[engineer] || 0),
+      },
+    ];
+
+    // console.log(FinalDataArray);
+
+    const firstNamesForSiteEnginners = selectedSiteEngineer.map((fullName) => {
+      const names = fullName.split(" ");
+      if (names.length === 1) {
+        return names[0];
+      } else {
+        const [firstName, lastName] = names;
+        const lastInitial = lastName.charAt(0);
+        return `${firstName} ${lastInitial}`;
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      FinalDataArray,
+      firstNamesForSiteEnginners,
+    });
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/siteEngineerForMonthlyWork", async (req, res, next) => {
   try {
     // Get the current date
     const today = new Date();
@@ -1051,113 +1162,134 @@ router.get("/siteEngineerForMonthlyWorkProgress", async (req, res, next) => {
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(today.getDate() - 30);
 
-    // Find posts with commissions within the last 30 days
+    // Find posts with commissions within the last 30 days for Dumindu Chamikara
     const posts = await Posts.find(
       {
+        Site_Engineer: "Ashan Shashika", // Filter by Site_Engineer
         Commission: {
           $gte: thirtyDaysAgo.toISOString(),
           $lte: today.toISOString(),
         },
       },
-      { Site_Engineer: 1, Commission: 1, PAT_Pass: 1, On_air: 1, _id: 0 } // Projection to include Site_Engineer, Commission, PAT_Pass, and On_air fields
+      { On_air: 1, _id: 0 } // Projection to include only Commission, PAT_Pass, and On_air fields
     );
 
-    // Extract Site_Engineer names into a Set to remove duplicates
-    const siteEngineerNamesSet = new Set(
-      posts.map((post) => post.Site_Engineer)
-    );
-
-    // Convert Set back to array
-    const siteEngineerNames = Array.from(siteEngineerNamesSet);
-
-    // Initialize an object to store counts for each engineer
-    const engineerCounts = {};
-
-    // Iterate over each engineer
-    siteEngineerNames.forEach((engineer) => {
-      // Count occurrences of Commission, PAT_Pass, and On_air for the engineer
-      const commissionCount = posts.filter(
-        (post) => post.Site_Engineer === engineer && post.Commission
-      ).length;
-      const patCount = posts.filter(
-        (post) => post.Site_Engineer === engineer && post.PAT_Pass
-      ).length;
-      const onAirCount = posts.filter(
-        (post) => post.Site_Engineer === engineer && post.On_air
-      ).length;
-
-      // Store counts for the engineer
-      engineerCounts[engineer] = {
-        Commission: commissionCount,
-        PAT_Pass: patCount,
-        On_air: onAirCount,
-      };
-    });
-
-    // Format data into the desired structure
-    const siteEnginerForTask = [
-      {
-        name: "Commissioned",
-        type: "column",
-        data: siteEngineerNames.map(
-          (engineer) => engineerCounts[engineer].Commission || 0
-        ),
-      },
-      {
-        name: "PAT",
-        type: "column",
-        data: siteEngineerNames.map(
-          (engineer) => engineerCounts[engineer].PAT_Pass || 0
-        ),
-      },
-      {
-        name: "OnAir",
-        type: "column",
-        data: siteEngineerNames.map(
-          (engineer) => engineerCounts[engineer].On_air || 0
-        ),
-      },
-    ];
-
-    const returnData = { siteEnginerForTask, siteEngineerNames };
-
-    return res.status(200).json({
-      success: true,
-      returnData,
-    }); // Sending the siteEnginerForTask array as a response
+    console.log("Number of posts within last 30 days:", posts.length);
+    res.json(posts); // Sending the posts as a response
   } catch (error) {
     console.error("Error fetching posts:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-// router.get("/siteEngineerForMonthlyWorkProgress", async (req, res, next) => {
-//   try {
-//     // Get the current date
-//     const today = new Date();
+router.get("/AllSiteEngineersNamesForMultipleTasksFilter", (req, res) => {
+  Posts.aggregate([
+    {
+      $group: {
+        _id: "$Site_Engineer",
+      },
+    },
+    {
+      $match: {
+        _id: { $ne: null },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        siteEngineer: "$_id",
+      },
+    },
+  ]).exec((err, uniqueSiteEngineers) => {
+    if (err) {
+      return res.status(400).json({
+        error: err,
+      });
+    }
 
-//     // Calculate the date 30 days ago
-//     const thirtyDaysAgo = new Date(today);
-//     thirtyDaysAgo.setDate(today.getDate() - 30);
+    const siteEngineersNamesArray = uniqueSiteEngineers.map(
+      (engineer) => engineer.siteEngineer
+    );
 
-//     // Find posts with commissions within the last 30 days for Dumindu Chamikara
-//     const posts = await Posts.find(
-//       {
-//         Site_Engineer: "Dumindu Chamikara", // Filter by Site_Engineer
-//         Commission: {
-//           $gte: thirtyDaysAgo.toISOString(),
-//           $lte: today.toISOString(),
-//         },
-//       },
-//       { Commission: 1, PAT_Pass: 1, On_air: 1, _id: 0 } // Projection to include only Commission, PAT_Pass, and On_air fields
-//     );
+    return res.status(200).json({
+      success: true,
+      siteEngineersNamesArray,
+    });
+  });
+});
 
-//     console.log("Number of posts within last 30 days:", posts.length);
-//     res.json(posts); // Sending the posts as a response
-//   } catch (error) {
-//     console.error("Error fetching posts:", error);
-//     res.status(500).json({ message: "Internal Server Error" });
-//   }
-// });
+router.get("/AllProjectsNamesForMultipleTasksFilter", (req, res) => {
+  Posts.aggregate([
+    {
+      $group: {
+        _id: "$Project",
+      },
+    },
+    {
+      $match: {
+        _id: { $ne: null },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        projectName: "$_id",
+      },
+    },
+  ]).exec((err, uniqueProjects) => {
+    if (err) {
+      return res.status(400).json({
+        error: err,
+      });
+    }
+
+    const ProjectsNamesArray = uniqueProjects.map(
+      (project) => project.projectName
+    );
+
+    return res.status(200).json({
+      success: true,
+      ProjectsNamesArray,
+    });
+  });
+});
+
+router.get("/test", (req, res) => {
+  const abc = [
+    "Supun Kularatne",
+    "Sahan Sandeep",
+    "Chamara Jayasanka",
+    "Dishan Ranathunga",
+    "Ashan Shashika",
+    "Ruwan Lakmal",
+    "Asanga Jayasooriya",
+    "Hasitha Amarawansha",
+    "Kasun Kandamulla",
+    "Randika Prabath",
+    "Shehan Perera",
+    "Yomal Kodagoda",
+    "A.T.M.Imran",
+    "Saminda Prasad",
+    "Prasath Jayawardhana",
+    "Suranga Bandara",
+    "Himantha Rajapakshe",
+    "Sampath Kaluarachchi",
+    "Suranga Gunawardhana",
+    "Dumindu Chamikara",
+  ];
+
+  const firstNameAndLastInitial = abc.map((fullName) => {
+    const names = fullName.split(" ");
+    if (names.length === 1) {
+      return names[0];
+    } else {
+      const [firstName, lastName] = names;
+      const lastInitial = lastName.charAt(0);
+      return `${firstName} ${lastInitial}`;
+    }
+  });
+
+  console.log(firstNameAndLastInitial);
+});
 
 module.exports = router;
