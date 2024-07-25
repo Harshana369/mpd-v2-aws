@@ -97,10 +97,10 @@ router.get("/mobitelProjectsDatabases", async (req, res, next) => {
         posts,
         Project
       ),
-      projectHandOverData: getProjectsHandOverData(posts, Project),
-      projectsPatData: getProjectsPatData(posts, Project),
-      projectsOnAirData: getProjectsOnAirData(posts, Project),
-      projectsCommissionedData: getProjectCommissionedData(posts, Project),
+      // projectHandOverData: getProjectsHandOverData(posts, Project),
+      // projectsPatData: getProjectsPatData(posts, Project),
+      // projectsOnAirData: getProjectsOnAirData(posts, Project),
+      // projectsCommissionedData: getProjectCommissionedData(posts, Project),
     });
   });
 });
