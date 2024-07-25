@@ -1046,10 +1046,6 @@ router.get("/siteEngineerForMonthlyWorkProgressNew", async (req, res, next) => {
   try {
     const { selectedSiteEngineer, selectedProject, fromDate, toDate } =
       req.query;
-    console.log("---");
-    console.log(fromDate);
-    console.log(toDate);
-    console.log("---");
 
     // Find posts within the specified date range and for the selected site engineers and projects
     const commissionObjects = await Posts.find({
